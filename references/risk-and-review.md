@@ -1,113 +1,99 @@
-# Risk and Review Model
+# Risk and Review
 
-Use this model only when the target repository does not define a stricter or more specific route.
+Load this reference after discovery for every non-trivial task. Treat it as the fallback source for decision gates, task routing, human authority, and reviewer topology. Apply the repository's scoped model whenever it exists, whether it is stricter, lighter, or differently structured; route any conflict with higher-level instructions to `Q0 / BLOCK`.
+
+## Clarification Gates
+
+Resolve facts from project evidence and reserve questions for decisions:
+
+- `Q0`: blocks the Plan because the outcome, authority, or safe boundary is undefined.
+- `Q1`: changes scope, contract, risk, or acceptance; close it or record an explicit human downgrade.
+- `Q2`: does not block execution; record it with its follow-up.
+
+For PRDs, prototypes, screenshots, demos, or incomplete requirements:
+
+1. Use `grilling` when available; otherwise use the same manual pattern.
+2. Ask one decision at a time, include a recommended answer, and wait.
+3. Keep included inputs, excluded inputs, non-goals, and defaults explicit.
+4. Obtain confirmation of shared understanding before the development Plan.
+
+While a `Q0` or blocking `Q1` remains, complete the turn with current evidence, a provisional route, exactly one decision question with a recommended answer, and status `BLOCKED_BEFORE_PLAN`. Enter planning on a later turn after those decisions close.
+
+Require traceable human confirmation for these semantics:
+
+| Decision | Authority |
+|---|---|
+| Product behavior, state meaning, user result | Product or domain owner |
+| Money, refunds, billing, settlement, entitlement | Domain owner plus accountable financial owner |
+| Authorization model or security risk | Security owner |
+| Schema, history, migration, backfill, recovery | Data owner plus affected domain owner |
+| Destructive public architecture or contract | Accountable technical owner |
+| Significant residual production risk | Owner accountable for the production surface |
+
+Record `confirmed_by`, `authority`, `evidence`, and `confirmed_at`. Keep residual-risk acceptance independent from implementation ownership.
 
 ## Task Axes
 
-Record the axes independently:
+Record independently:
 
-| Axis | Values | Purpose |
+| Axis | Values | Controls |
 |---|---|---|
-| `risk_tier` | `Small / Normal / High-risk` | Set the minimum safety and validation floor |
-| `change_mode` | `Standard / Hotfix` | Set sequencing and urgency without lowering risk |
-| `effort_size` | `S / A / B / C / D` | Guide decomposition and resource use when useful |
-| `review_lane` | `Direct / Fast / Guarded / Audit` | Set Plan checkpoints, reviewer count, and evidence detail |
+| `risk_tier` | `Small / Normal / High-risk` | Safety and validation floor |
+| `change_mode` | `Standard / Hotfix` | Sequencing and urgency |
+| `effort_size` | `S / A / B / C / D` | Decomposition and resources |
+| `review_lane` | `Direct / Fast / Guarded / Audit` | Plan checkpoint, reviewers, evidence detail |
 
-Classify risk from actual behavior and failure impact:
+Risk tiers:
 
-- `Small`: change only docs, comments, formatting, or local tests without changing production behavior, public contracts, the acceptance oracle, coverage policy, CI, test infrastructure, security policy, or release gates.
-- `Normal`: make a reversible, bounded behavior change with clear acceptance and faithful automated evidence.
-- `High-risk`: change money, refunds, entitlements, permissions, sensitive data, destructive public contracts, database schema or historical data, message or job semantics, transactions, concurrency, idempotency, cross-system writes, batch user operations, rollback invariants, or critical observability.
+- `Small`: docs, comments, formatting, or local tests with no changed production behavior, public contract, oracle, coverage policy, CI, test infrastructure, security policy, or release gate.
+- `Normal`: bounded, reversible behavior with clear acceptance and faithful automated evidence.
+- `High-risk`: money, entitlement, permission, sensitive data, destructive contract, schema/history, message/job semantics, transaction/concurrency/idempotency, cross-system write, batch users, recovery invariant, or critical observability.
 
-Treat CI, test infrastructure, quality gates, security policy, and release workflow changes as at least `Normal`. Record evidence for any downgrade from an apparent High-risk trigger.
+Treat CI, test infrastructure, quality gates, security policy, and release workflow as at least `Normal`. Support any apparent High-risk downgrade with code evidence.
 
 ## Risk Card
 
-Answer each applicable question after clarification, after the Plan, and after the final diff:
-
-| Dimension | Question |
+| Dimension | Required evidence |
 |---|---|
-| Outcome | What user or system result must hold, and what behavior is forbidden? |
-| Scope | Which entries, domains, consumers, configurations, jobs, messages, and users are affected? |
-| Contract | Does the change alter API, DTO, enum, error, JSON, event, or version-compatibility semantics? |
-| Data | Does it alter schema or history, and how can execution stop, resume, reconcile, roll back, or move forward? |
-| Side effects | Does it charge, notify, publish, schedule, or write to another system, and can it repeat safely? |
-| Consistency | What are the transaction, lock, retry, duplicate, ordering, partial-success, and compensation rules? |
-| Security | Does it change authentication, authorization, trust boundaries, sensitive data, signatures, dynamic execution, or privileged tools? |
-| Detection | Which logs, metrics, alerts, smoke checks, or reconciliation expose failure? |
-| Recovery | Who operates the stop switch and recovery steps, and under what trigger? |
-| Uncertainty | Which facts remain assumptions, and what evidence would overturn the current route? |
+| Outcome | Required user/system result and forbidden behavior |
+| Scope | Entries, domains, consumers, configuration, jobs, messages, users |
+| Contract | API, DTO, enum, error, JSON, event, version compatibility |
+| Data | Schema/history, stop, resume, reconcile, rollback or forward repair |
+| Side effects | Charge, notify, publish, schedule, cross-system write, safe repetition |
+| Consistency | Transaction, lock, retry, duplicate, order, partial success, compensation |
+| Security | Authn/authz, trust boundary, sensitive data, signature, dynamic execution, privilege |
+| Detection | Logs, metrics, alerts, smoke, reconciliation |
+| Recovery | Operator, trigger, stop control, executable recovery |
+| Uncertainty | Assumptions and evidence that would overturn the route |
+
+The card is complete when every applicable row has evidence or an explicit unresolved decision.
 
 ## Review Lanes
 
-Choose the lane independently from risk and effort:
+| Lane | Fit | Checkpoint and reviewers |
+|---|---|---|
+| `Direct` | Small, docs, comments, local test maintenance | Short Plan/self-check; 0 reviewers |
+| `Fast` | Clear, bounded, reversible, no external write, faithful targeted proof | Mini Plan; 0 reviewers |
+| `Guarded` | Normal public/read boundary, error, performance, or acceptance uncertainty | Close `Q0/Q1`; 1 stable reviewer: Implementation for production code, Architecture for governance/boundaries |
+| `Audit` | High-risk or actual change to protected invariants | Architecture + Test review Plan, then explicit user approval; final Architecture + Implementation + Test; add Security for a changed trust boundary |
 
-| Lane | Default fit | Plan checkpoint | Independent review |
-|---|---|---|---|
-| `Direct` | `Small`, documentation, comments, or local test maintenance | Short Plan or self-check | None |
-| `Fast` | Clear, bounded, reversible behavior with no external write and faithful targeted evidence | Mini Plan; continue when implementation is already authorized | None |
-| `Guarded` | Normal change with a public display contract, cross-boundary read, error semantics, performance concern, or meaningful acceptance uncertainty | Pause only for unresolved `Q0/Q1` or material decisions | One persistent relevant reviewer at the stable final checkpoint |
-| `Audit` | High-risk or actual change to money, permissions, schema/history, async semantics, concurrency, cross-system writes, batch users, recovery, or critical observability | Architecture and Test review of risk card and Plan, then explicit user confirmation | Architecture, Implementation, and Test reviewers on the same final diff; add Security only for a real trust-boundary change |
+Keep deterministic display, passthrough, ordering, filtering, and local compatible fixes in `Fast` while evidence remains clear. Route every actual High-risk trigger to `Audit`.
 
-Use the default reviewer budget `Direct=0`, `Fast=0`, `Guarded=1`, and `Audit=3`, with one conditional Security reviewer. Load specialist capabilities into an existing reviewer instead of inventing extra personas.
+## Reviewer Model
 
-Do not upgrade a clearly bounded deterministic sort, field passthrough, local compatible fix, or single-entry read-only filter out of `Fast` without code evidence of real uncertainty. Do not downgrade a real `Audit` trigger because implementation appears easy.
-
-## Reviewer Responsibilities
-
-Assign one primary responsibility to each reviewer:
-
-- Architecture: module boundaries, public contracts, data evolution, cross-system consistency, rollout, and recovery.
-- Implementation: correctness, complex branches, transactions, concurrency, idempotency, query and call performance, robustness, and maintainability.
-- Test: independent acceptance oracle, counterexamples, test level, failure injection, regression, and release evidence.
-- Security: threat model, authentication and authorization, sensitive data, injection and replay, signing and secrets, untrusted inputs, dynamic execution, and privileged tool use.
-
-Load these capabilities when triggered:
-
-- `DomainContract`: business meaning, public contracts, enum or error semantics, and compatibility.
-- `DataMigration`: schema, stored JSON, backfill, dual-read or dual-write, resume, reconciliation, and recovery.
-- `ReliabilityConcurrency`: transactions, locks, retry, duplicate or unordered async work, idempotency, and compensation.
-- `PerformanceCapacity`: query or external-call counts, pagination, batching, indexes, limits, and capacity.
-- `OperabilityRelease`: configuration, async deployment, rollout order, smoke, alerts, stop controls, and recovery.
-
-Do not let reviewers delegate additional reviewers or decide business semantics. Decide conflicts using reproducible evidence and authorized human decisions, not a majority vote.
-
-## Reviewer Independence
-
-Require all of the following:
-
-1. Keep the reviewer separate from the implementation.
-2. Give the reviewer the raw request, applicable project rules, current code and diff, acceptance items, and original validation evidence.
-3. Require the reviewer to form an independent risk view before reading the implementer's self-assessment.
-4. Let the implementer mark a finding fixed, but let the finding owner or another independent reviewer verify closure.
-5. Reuse the same reviewer for affected incremental re-review unless scope, contracts, data semantics, external effects, risk, or the acceptance oracle changes.
-
-Mark required independent review `NOT_COMPLETED` and the task `BLOCK` when the execution environment cannot provide it. Do not treat timeout or silence as approval.
-
-## Human Decision Authority
-
-Require a traceable human confirmation for:
-
-| Decision | Required authority |
+| Reviewer | Sole responsibility |
 |---|---|
-| Product behavior, state meaning, and user result | Product or domain owner for the capability |
-| Money, refunds, billing, settlement, or entitlement value | Product or domain owner plus the accountable financial owner |
-| Authorization model or security risk acceptance | Security owner |
-| Schema, history, migration, backfill, and recovery | Data owner plus the affected domain owner |
-| Destructive public architecture or contract boundary | Accountable technical owner |
-| Significant residual production risk | Owner accountable for the affected production surface |
+| Architecture | Boundaries, contracts, data evolution, cross-system consistency, rollout/recovery |
+| Implementation | Correctness, branches, transaction/concurrency/idempotency, performance, robustness |
+| Test | Independent oracle, counterexamples, test layer, failure injection, regression/release evidence |
+| Security | Threat model, authn/authz, sensitive data, injection/replay, signing/secrets, privileged tools |
 
-Record `confirmed_by`, `authority`, `evidence`, and `confirmed_at`. Do not let the implementer accept their own residual production risk.
+Load specialist capabilities into these reviewers: `DomainContract` → Architecture; `DataMigration` → Architecture + Test; `ReliabilityConcurrency` → Implementation + Test; `PerformanceCapacity` → Implementation; `OperabilityRelease` → Architecture + Test.
 
-## Dynamic Escalation
+Keep reviewers independent: separate them from implementation, supply raw artifacts, require an independent risk view, keep the reviewer topology fixed, and let the finding owner or another reviewer verify closure. Resolve disagreements with reproducible evidence and authorized human decisions. Count silence or unavailable required review as `NOT_COMPLETED`, which yields `BLOCK`.
 
-Stop and reroute on any of these changes:
+## Reroute
 
-- new irreversible data behavior, external write, or privileged access
-- conflicting or insufficient acceptance oracle
-- diff outside the confirmed domain or entry points
-- changed public contract or compatibility behavior
-- unavailable faithful required validation
-- repeated failure to close the same blocking finding
+Rebuild the card and lane when the diff introduces irreversible data, an external write, privilege, an undefined oracle, scope drift, a public contract change, unavailable faithful validation, or a repeatedly unclosed blocking finding.
 
-Do not use a hotfix to lower risk. Mark only containment complete until deferred verification, review, and follow-up ownership are explicit.
+Keep the original risk tier during a Hotfix. Mark containment complete only after deferred verification, review ownership, and deadlines are explicit.

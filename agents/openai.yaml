@@ -1,4 +1,4 @@
 interface:
   display_name: "Steven's Awesome Code Workflow"
-  short_description: "Evidence-driven workflow for any code project"
-  default_prompt: "Use $steven-awesome-code-workflow to handle this repository task with project-aware risk routing, validation, and delivery."
+  short_description: "Project-aware evidence loop for code work"
+  default_prompt: "Use $steven-awesome-code-workflow to run the evidence loop for this repository task."
