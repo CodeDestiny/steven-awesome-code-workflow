@@ -7,7 +7,7 @@ Load this reference for repository changes, formal review, or delivery conclusio
 - [Conclusions](#conclusions)
 - [Lane Gates](#lane-gates)
 - [Change-Type Proof](#change-type-proof)
-- [Evidence Manifest](#evidence-manifest)
+- [Evidence Records](#evidence-records)
 - [Findings](#findings)
 - [Audit Challenge](#audit-challenge)
 - [Delivery](#delivery)
@@ -28,10 +28,10 @@ Apply repository-specific gates first:
 
 | Lane | Required proof |
 |---|---|
-| `Direct` | Relevant document/format/link/test/script check; final diff integrity |
-| `Fast` | Mini Plan; targeted automated behavior proof; compile/type proof for signature risk; final diff integrity; unchanged security boundary |
-| `Guarded` | Fast gates; Evidence Manifest; one stable independent reviewer; closed `Q0/Q1` |
-| `Audit` | Guarded gates; broad regression; change-type proof; Architecture + Implementation + Test on the same final diff/evidence; conditional Security; rollout/recovery/observability |
+| `Direct` | Relevant document/format/link/test/script check; final diff integrity; inline evidence in the delivery surface |
+| `Fast` | Mini Plan; targeted automated behavior proof; compile/type proof for signature risk; final diff integrity; unchanged security boundary; inline evidence |
+| `Guarded` | Fast gates; one reference-first Evidence Receipt or repository equivalent; one stable independent reviewer; closed `Q0/Q1` |
+| `Audit` | Guarded gates; extended Receipt; broad regression; change-type proof; Architecture + Implementation + Test on the same final diff/evidence; conditional Security; rollout/recovery/observability |
 
 ## Change-Type Proof
 
@@ -52,21 +52,53 @@ Use the most faithful reasonable layer:
 
 Mocks prove local behavior; production contracts require a faithful contract layer. Lightweight databases prove their own dialect and isolation; use production-faithful evidence for production claims. Mark an unavailable required layer `BLOCK`.
 
-## Evidence Manifest
+## Evidence Records
 
-Maintain one manifest or equivalent task record containing:
+Apply the repository's scoped evidence format first. When it has none:
 
-- goal, non-goals, scope, acceptance items, baseline and final diff identity
-- task axes, change types, capabilities, affected entries/consumers/configuration/data/side effects
-- each command's environment, configuration, input snapshot, first result, retries/flakes, final result, raw evidence location
-- acceptance item and failure mode mapped to bound evidence
-- reviewer identity, responsibility, scope, findings, evidence gaps, unreviewed areas, overturn conditions
-- external changes, rollout, stop, recovery, observability, observation window
-- skipped gates, residual risk, waiver owner, deadline, tracking item
+- Keep `Direct/Fast` evidence inline in the PR, issue, task, or delivery summary.
+- Maintain one reference-first Evidence Receipt or equivalent for `Guarded/Audit`; let it follow the ordinary branch, PR, and Git lifecycle rather than creating a separate state machine.
 
-Bind evidence to the exact diff, tests, configuration, environment, acceptance item, and failure mode it covers. Share unchanged bound evidence across reviewers. After a fix, rerun affected gates and every gate whose binding changed.
+A default Receipt is deliberately small:
 
-The manifest is complete when every required gate and acceptance item has a bound result or an explicit `BLOCK`.
+```yaml
+task:
+  risk:
+  mode:
+  effort:
+  lane:
+refs:
+  requirement:
+  diff:
+gates:
+  - name:
+    acceptance: []
+    result:
+    evidence:
+review:
+  role:
+  scope:
+  result:
+  findings: []
+residual_risks: []
+result:
+```
+
+Use this schema as the complete default, not as a checklist to expand. A detail being available is not a trigger to add it.
+
+- Reference acceptance IDs from `requirement` in the applicable gates; keep acceptance prose in the requirement.
+- Put change types, capabilities, the risk card, implementation scope, changed files, raw validation/review output, and reviewer input snapshots in their source artifacts or the delivery summary. Link evidence from the relevant gate or finding instead of adding parallel Receipt sections.
+- Add commands and environment only when they are needed to reproduce a claim or explain an actual failure, retry, or flake.
+
+Extend the default only when a scoped repository rule requires it or one of these conditions occurs: additional reviewers or specialized proof for `Audit`; a waiver for accepted S1 risk; release, stop, recovery, observability, or an observation window for a release surface; expiry for externally retained evidence.
+
+Prefer references over copied requirements, diffs, changed-file lists, logs, or reviewer prose. Omit empty helper, waiver, release, and specialized-proof structures. Omit token use, elapsed time, review-round counts, and other process metrics unless a scoped repository rule makes them decision evidence.
+
+Bind every evidence reference to the exact diff, tests, configuration, acceptance item, failure mode, and result it covers. Add commands and environment only when needed to reproduce the claim or explain an actual failure, retry, or flake. Share unchanged bound evidence across reviewers. After a fix, rerun affected gates and every gate whose binding changed.
+
+For non-reproducible production observation, one-time data checks, asynchronous ordering, or external approval, retain sanitized key evidence or a controlled reference with an expiry. Keep sensitive, large, or high-frequency output outside Git.
+
+The evidence record is complete when every required gate and acceptance item has a traceable result or an explicit `BLOCK`.
 
 ## Findings
 
@@ -116,7 +148,7 @@ Report:
 
 1. Implemented outcome and affected surfaces.
 2. Task axes, lane, change types, capabilities.
-3. Exact commands, environments, first/final results, evidence locations.
+3. Required-gate result summaries and evidence references; commands and environments only when needed for reproduction or to explain an actual failure, retry, or flake.
 4. External changes, rollout, stop, recovery, observability.
 5. Reviewers, scope, findings, closure owners, waivers, unreviewed areas.
 6. Residual risk and required follow-up.

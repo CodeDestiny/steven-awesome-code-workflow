@@ -71,7 +71,7 @@ steven-awesome-code-workflow/
 
 - [`SKILL.md`](SKILL.md)：项目发现、任务路由、授权、实施、验证和交付主流程
 - [`risk-and-review.md`](references/risk-and-review.md)：风险模型、Review Lane、Reviewer 职责和动态升级
-- [`evidence-and-delivery.md`](references/evidence-and-delivery.md)：验证 bundle、Evidence Manifest、finding 生命周期和交付结论
+- [`evidence-and-delivery.md`](references/evidence-and-delivery.md)：验证 bundle、Evidence Receipt、finding 生命周期和交付结论
 - [`openai.yaml`](agents/openai.yaml)：Codex 技能列表中的展示元数据
 
 README 仅用于仓库展示和安装说明，不参与技能运行时指令。

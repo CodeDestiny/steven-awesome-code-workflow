@@ -82,7 +82,7 @@ Delegate technique without delegating governance: use `diagnosing-bugs` for hard
 
 ## 6. Prove the Final Diff
 
-Read [evidence-and-delivery.md](references/evidence-and-delivery.md) whenever the task changes repository state, performs a formal review, or needs a delivery conclusion. Use it as the single source of truth for lane gates, change-type evidence, the Evidence Manifest, findings, and `PASS / CONDITIONAL_PASS / BLOCK`.
+Read [evidence-and-delivery.md](references/evidence-and-delivery.md) whenever the task changes repository state, performs a formal review, or needs a delivery conclusion. Use it as the single source of truth for lane gates, change-type evidence, inline evidence for `Direct/Fast`, a reference-first Evidence Receipt for `Guarded/Audit`, findings, and `PASS / CONDITIONAL_PASS / BLOCK`.
 
 Run the narrowest faithful checks first, then every broader or specialized gate required by the final route. Start independent reviewers only after the diff and evidence are stable; give them the raw request, repository rules, final diff, acceptance items, and original results.
 
