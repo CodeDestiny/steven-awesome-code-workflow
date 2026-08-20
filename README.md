@@ -13,6 +13,7 @@
 - 对 PRD、原型和模糊需求执行逐项澄清
 - 将验收项映射到可重复、可证伪的验证证据
 - 为高风险改动组织独立 Reviewer、回滚和可观测性证据
+- 区分执行期 Working Evidence Receipt 与按需保留的 Retained Evidence Record
 - 适配不同语言、框架、构建工具和仓库规范
 
 ## 核心原则
@@ -33,7 +34,7 @@
 
 ## 安装
 
-使用已登录 GitHub 的 `gh` CLI 克隆私有仓库：
+使用已登录 GitHub 的 `gh` CLI 克隆仓库：
 
 ```bash
 gh repo clone CodeDestiny/steven-awesome-code-workflow \
@@ -71,7 +72,7 @@ steven-awesome-code-workflow/
 
 - [`SKILL.md`](SKILL.md)：项目发现、任务路由、授权、实施、验证和交付主流程
 - [`risk-and-review.md`](references/risk-and-review.md)：风险模型、Review Lane、Reviewer 职责和动态升级
-- [`evidence-and-delivery.md`](references/evidence-and-delivery.md)：验证 bundle、Evidence Receipt、finding 生命周期和交付结论
+- [`evidence-and-delivery.md`](references/evidence-and-delivery.md)：验证 bundle、工作证据与留存证据生命周期、finding 生命周期和交付结论
 - [`openai.yaml`](agents/openai.yaml)：Codex 技能列表中的展示元数据
 
 README 仅用于仓库展示和安装说明，不参与技能运行时指令。

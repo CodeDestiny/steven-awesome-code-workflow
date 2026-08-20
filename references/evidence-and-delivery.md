@@ -7,7 +7,7 @@ Load this reference for repository changes, formal review, or delivery conclusio
 - [Conclusions](#conclusions)
 - [Lane Gates](#lane-gates)
 - [Change-Type Proof](#change-type-proof)
-- [Evidence Records](#evidence-records)
+- [Evidence Lifecycle](#evidence-lifecycle)
 - [Findings](#findings)
 - [Audit Challenge](#audit-challenge)
 - [Delivery](#delivery)
@@ -30,8 +30,8 @@ Apply repository-specific gates first:
 |---|---|
 | `Direct` | Relevant document/format/link/test/script check; final diff integrity; inline evidence in the delivery surface |
 | `Fast` | Mini Plan; targeted automated behavior proof; compile/type proof for signature risk; final diff integrity; unchanged security boundary; inline evidence |
-| `Guarded` | Fast gates; one reference-first Evidence Receipt or repository equivalent; one stable independent reviewer; closed `Q0/Q1` |
-| `Audit` | Guarded gates; extended Receipt; broad regression; change-type proof; Architecture + Implementation + Test on the same final diff/evidence; conditional Security; rollout/recovery/observability |
+| `Guarded` | Fast gates; one reference-first Working Evidence Receipt or repository equivalent; one stable independent reviewer; closed `Q0/Q1` |
+| `Audit` | Guarded gates; extended Working Receipt; broad regression; change-type proof; Architecture + Implementation + Test on the same final diff/evidence; conditional Security; rollout/recovery/observability |
 
 ## Change-Type Proof
 
@@ -46,29 +46,38 @@ Use the most faithful reasonable layer:
 | `data/migration` | Dry-run, batching, idempotency, stop/resume, counts, sample reconciliation, recovery |
 | `async/job` | Duplicate, disorder, retry, partial failure, restart, cursor/offset, poison input, stop |
 | `external-call` | Success, business failure, timeout, exception, partial success, retry/idempotency, degradation |
-| `security` | Horizontal/vertical authorization, replay, injection, sensitive logs, deny-by-default, least privilege |
+| `security` | Horizontal/vertical authorization, replay, injection, usable-secret exposure, data carrier/audience boundaries, deny-by-default, least privilege |
 | `performance` | Query/call counts, bounded collections, plan/index evidence, capacity or repeatable benchmark |
 | `release` | Order, feature/stop controls, smoke, logs/metrics/alerts, reconciliation, observation, tested recovery |
 
 Mocks prove local behavior; production contracts require a faithful contract layer. Lightweight databases prove their own dialect and isolation; use production-faithful evidence for production claims. Mark an unavailable required layer `BLOCK`.
 
-## Evidence Records
+## Evidence Lifecycle
 
-Apply the repository's scoped evidence format first. When it has none:
+Apply the repository's scoped evidence format first. When it has none, use two layers with different lifetimes.
 
-- Keep `Direct/Fast` evidence inline in the PR, issue, task, or delivery summary.
-- Maintain one reference-first Evidence Receipt or equivalent for `Guarded/Audit`; let it follow the ordinary branch, PR, and Git lifecycle rather than creating a separate state machine.
+### Working Evidence Receipt
 
-A default Receipt is deliberately small:
+Keep `Direct/Fast` evidence inline in the PR, issue, task, or delivery summary. For `Guarded/Audit`, maintain one reference-first Working Evidence Receipt in this order of preference:
+
+1. An existing Draft PR, issue, task, or equivalent collaboration surface.
+2. An ignored local `.codex/evidence/<task-id>.yaml` file in a shared workspace.
+3. If neither exists, the minimal receipt fields embedded in the commit, PR, task, or delivery surface.
+
+Never commit the ignored working draft by default. Use a compact fallback shape:
 
 ```yaml
+version: 1
+kind: working_evidence_receipt
 task:
+  id:
   risk:
   mode:
   effort:
   lane:
 refs:
   requirement:
+  baseline:
   diff:
 gates:
   - name:
@@ -81,24 +90,40 @@ review:
   result:
   findings: []
 residual_risks: []
+result: IN_PROGRESS
+```
+
+Use this schema as the complete default, not as a checklist to expand. Reference acceptance IDs instead of copying prose; keep the risk card, implementation scope, changed files, raw outputs, and reviewer input snapshots in their source artifacts. Add commands and environment only when needed to reproduce a claim or explain an actual failure, retry, or flake.
+
+At task close, delete the Working Receipt, merge its minimal proof into the durable PR/issue/commit/delivery surface, or promote only the irreducible parts to a Retained Evidence Record.
+
+### Retained Evidence Record
+
+Retention is exceptional. Create a repository-tracked record only when at least one condition holds:
+
+- the evidence is not reproducible, such as a production observation, one-time data check, asynchronous ordering result, or external approval;
+- an open finding, waiver, blocker, or residual risk needs an auditable close condition; or
+- no reliable PR, issue, CI, commit, or release artifact preserves the proof and a real audit need exists.
+
+Lane, risk tier, reviewer count, or an available detail alone does not justify retention. Store retained records only in a repository-defined path, or a documented fallback such as `docs/evidence/` when the repository permits it. Include the retention reason, steward, review/expiry date, final commit and PR/issue references, close condition, and separate accountable risk/release owners when applicable. A record steward is not automatically the human risk or release owner.
+
+```yaml
+version: 1
+kind: retained_evidence_record
+task: {id: "", title: ""}
+refs: {requirement: "", final_commit: "", pr_or_issue: ""}
+retention: {reason: "", steward: "", review_at: "", expires_at: ""}
+accountability: {risk_owner: "", release_owner: ""}
+evidence: {summary: "", controlled_ref: ""}
+status:
+close_condition:
+residual_risks: []
 result:
 ```
 
-Use this schema as the complete default, not as a checklist to expand. A detail being available is not a trigger to add it.
+Prefer references over copied requirements, diffs, logs, or reviewer prose. Keep sensitive, large, or high-frequency output outside Git. Omit empty helper, waiver, release, and specialized-proof structures, and omit process metrics unless repository rules make them decision evidence.
 
-- Reference acceptance IDs from `requirement` in the applicable gates; keep acceptance prose in the requirement.
-- Put change types, capabilities, the risk card, implementation scope, changed files, raw validation/review output, and reviewer input snapshots in their source artifacts or the delivery summary. Link evidence from the relevant gate or finding instead of adding parallel Receipt sections.
-- Add commands and environment only when they are needed to reproduce a claim or explain an actual failure, retry, or flake.
-
-Extend the default only when a scoped repository rule requires it or one of these conditions occurs: additional reviewers or specialized proof for `Audit`; a waiver for accepted S1 risk; release, stop, recovery, observability, or an observation window for a release surface; expiry for externally retained evidence.
-
-Prefer references over copied requirements, diffs, changed-file lists, logs, or reviewer prose. Omit empty helper, waiver, release, and specialized-proof structures. Omit token use, elapsed time, review-round counts, and other process metrics unless a scoped repository rule makes them decision evidence.
-
-Bind every evidence reference to the exact diff, tests, configuration, acceptance item, failure mode, and result it covers. Add commands and environment only when needed to reproduce the claim or explain an actual failure, retry, or flake. Share unchanged bound evidence across reviewers. After a fix, rerun affected gates and every gate whose binding changed.
-
-For non-reproducible production observation, one-time data checks, asynchronous ordering, or external approval, retain sanitized key evidence or a controlled reference with an expiry. Keep sensitive, large, or high-frequency output outside Git.
-
-The evidence record is complete when every required gate and acceptance item has a traceable result or an explicit `BLOCK`.
+Bind every reference to the exact diff, tests, configuration, acceptance item, failure mode, and result it covers. Share unchanged bound evidence across reviewers. After a fix, rerun affected gates and every gate whose binding changed. The evidence lifecycle is complete when every required gate and acceptance item has a traceable result or an explicit `BLOCK`, and the Working Receipt has been closed.
 
 ## Findings
 
